@@ -1,8 +1,8 @@
 POST http://localhost:3001/api/notes
 Content-Type: application/json
+# Authorization: Bearer + token
 
 {
-    "content": "User id of the note creator is at the start sent along the request 6",
-    "important": true,
-    "userId": "65b272826b467a72deafbcd4"
+    "content": "Single Page Apps use token auth 3",
+    "important": true
 }
