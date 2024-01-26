@@ -116,6 +116,25 @@ describe('addition of a new note', () => {
 
     expect(notesAtEnd).toHaveLength(helper.initialNotes.length);
   });
+
+  test('fails with status code 401 if not authorized', async () => {
+    const newNote = {
+      content: 'async/await simplifies making async calls',
+      important: true,
+    };
+
+    await api
+      .post('/api/notes')
+      .send(newNote)
+      .expect(401)
+      .expect('Content-Type', /application\/json/);
+
+    const notesAtEnd = await helper.notesInDb();
+    expect(notesAtEnd).toHaveLength(helper.initialNotes.length);
+
+    const contents = notesAtEnd.map((n) => n.content);
+    expect(contents).not.toContain('async/await simplifies making async calls');
+  });
 });
 
 describe('deletion of a note', () => {
