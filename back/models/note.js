@@ -19,6 +19,8 @@ const noteSchema = new mongoose.Schema(
 noteSchema.set('toJSON', {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();
+    returnedObject.createdAt = returnedObject.createdAt.toString();
+    returnedObject.updatedAt = returnedObject.updatedAt.toString();
     delete returnedObject._id;
     delete returnedObject.__v;
   },
