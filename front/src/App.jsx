@@ -26,6 +26,15 @@ const App = (props) => {
     });
   }, []);
 
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem('loggedNoteappUser');
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON);
+      setUser(user);
+      noteService.setToken(user.token);
+    }
+  }, []);
+
   const toggleImportanceOf = (id) => {
     const note = notes.find((n) => n.id === id);
     const changedNote = { ...note, important: !note.important };
@@ -68,11 +77,26 @@ const App = (props) => {
 
     try {
       const user = await loginService.login({ username, password });
+
+      window.localStorage.setItem('loggedNoteappUser', JSON.stringify(user));
+      noteService.setToken(user.token);
       setUser(user);
       setUsername('');
       setPassword('');
     } catch (exception) {
       setErrorMessage('Wrong credentials');
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 5000);
+    }
+  };
+
+  const handleLogout = () => {
+    try {
+      window.localStorage.removeItem('loggedNoteappUser');
+      setUser(null);
+    } catch (exception) {
+      setErrorMessage('Logout failed');
       setTimeout(() => {
         setErrorMessage(null);
       }, 5000);
@@ -97,7 +121,9 @@ const App = (props) => {
       )}
       {user && (
         <div>
-          <p>{user.name} logged in</p>
+          <p>
+            {user.name} logged in <button onClick={handleLogout}>Logout</button>
+          </p>
           <NoteForm
             addNote={addNote}
             newNote={newNote}
