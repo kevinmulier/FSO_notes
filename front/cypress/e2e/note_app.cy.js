@@ -1,13 +1,13 @@
-describe('Note app', function () {
+describe('Note ', function () {
   beforeEach(function () {
-    cy.request('POST', 'http://localhost:3001/api/testing/reset');
+    cy.request('POST', `${Cypress.env('BACKEND')}/testing/reset`);
     const user = {
-      name: 'Kevin M',
+      name: 'Kevin Mulier',
       username: 'kevinm',
       password: 'sekretpassword',
     };
-    cy.request('POST', 'http://localhost:3001/api/users/', user);
-    cy.visit('http://localhost:5173');
+    cy.request('POST', `${Cypress.env('BACKEND')}/users`, user);
+    cy.visit('');
   });
 
   it('front page can be opened', function () {
@@ -17,58 +17,51 @@ describe('Note app', function () {
     );
   });
 
-  it('user can log in', function () {
+  it('login form can be opened', function () {
     cy.contains('log in').click();
     cy.get('#username').type('kevinm');
     cy.get('#password').type('sekretpassword');
     cy.get('#login-button').click();
 
-    cy.contains('Kevin M logged in');
+    cy.contains('Kevin Mulier logged in');
   });
 
-  it.only('login fail if password is wrong', function () {
+  describe('when logged in', function () {
+    beforeEach(function () {
+      cy.login({ username: 'kevinm', password: 'sekretpassword' });
+    });
+
+    it('a new note can be created', function () {
+      cy.contains('new note').click();
+      cy.get('input').type('a note created by cypress');
+      cy.contains('save').click();
+      cy.contains('a note created by cypress');
+    });
+
+    describe('and several notes exist', function () {
+      beforeEach(function () {
+        cy.createNote({ content: 'first note', important: false });
+        cy.createNote({ content: 'second note', important: false });
+        cy.createNote({ content: 'third note', important: false });
+      });
+
+      it('one of those can be made important', function () {
+        cy.contains('second note').parent().find('button').as('theButton');
+        cy.get('@theButton').click();
+        cy.get('@theButton').should('contain', 'make not important');
+      });
+    });
+  });
+
+  it('login fails with wrong password', function () {
     cy.contains('log in').click();
     cy.get('#username').type('kevinm');
-    cy.get('#password').type('wrongpassword');
+    cy.get('#password').type('wrong');
     cy.get('#login-button').click();
 
     cy.get('.error')
       .should('contain', 'wrong credentials')
       .and('have.css', 'color', 'rgb(255, 0, 0)')
       .and('have.css', 'border-style', 'solid');
-
-    cy.get('html').should('not.contain', 'Kevin M logged in');
-  });
-
-  describe('when logged in', function () {
-    this.beforeEach(function () {
-      cy.contains('log in').click();
-      cy.get('#username').type('kevinm');
-      cy.get('#password').type('sekretpassword');
-      cy.get('#login-button').click();
-    });
-
-    it('a new note can be created', function () {
-      cy.contains('new note').click();
-      cy.get('#note-input').type('a note created by cypress');
-      cy.contains('save').click();
-      cy.contains('a note created by cypress');
-    });
-
-    describe('and a note exists', function () {
-      beforeEach(function () {
-        cy.contains('new note').click();
-        cy.get('#note-input').type('another note cypress');
-        cy.contains('save').click();
-      });
-
-      it('it can be made not important', function () {
-        cy.contains('another note cypress')
-          .contains('make not important')
-          .click();
-
-        cy.contains('another note cypress').contains('make important');
-      });
-    });
   });
 });
