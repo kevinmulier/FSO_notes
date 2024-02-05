@@ -26,6 +26,15 @@ describe('Note app', function () {
     cy.contains('Kevin M logged in');
   });
 
+  it.only('login fail if password is wrong', function () {
+    cy.contains('log in').click();
+    cy.get('#username').type('kevinm');
+    cy.get('#password').type('wrongpassword');
+    cy.get('#login-button').click();
+
+    cy.get('.error').contains('wrong credentials');
+  });
+
   describe('when logged in', function () {
     this.beforeEach(function () {
       cy.contains('log in').click();
